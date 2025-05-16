@@ -27,7 +27,7 @@ Proyek ini mengembangkan sistem prediksi kualitas udara berbasis machine learnin
 1. Clone repository ini
 ```bash
 
-git clone https://github.com/username/urban-air-quality-prediction.git
+git clone https://github.com/srios000/urban-air-quality-prediction.git
 cd urban-air-quality-prediction
 ```
 
