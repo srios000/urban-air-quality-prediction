@@ -1,3 +1,6 @@
+# vim-jukit extensions
+notebooks/.jukit/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
