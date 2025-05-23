@@ -175,3 +175,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+archive/
+
+src/app.py
+src/db_utils.py
+src/main.py
