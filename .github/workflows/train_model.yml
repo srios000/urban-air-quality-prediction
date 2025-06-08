@@ -1,8 +1,8 @@
 name: Train ML Model
 on:
   push:
-    paths:
-      - 'ML_training/**'
+    # paths:
+    #   - 'ML_training/**'
     branches: [ main, master, feature/merge_deployment ]  # Added master branch for compatibility
   pull_request:
     branches: [ main, master ]
@@ -41,10 +41,45 @@ jobs:
           ML_training/le_country.pkl
           ML_training/le_loc.pkl
         retention-days: 7  # Artifacts will be stored for 7 days
-  deploy:
-      needs: train  # or whatever your training job is called
-      if: success()  # only run if training succeeded
-      uses: ./.github/workflows/serve_model_v2.yml  # path to your deploy workflow
-      with:
-        model_artifact_name: model-artifacts
-      secrets: inherit  # passes all secrets to the called workflow
+  update-server-models:
+      needs: train  # replace with your actual training job name
+      if: success()
+      runs-on: ubuntu-latest
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Download model artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: model-artifacts
+          path: temp-artifacts
+          
+      - name: Extract and place model files
+        run: |
+          # Copy the extracted files to server/models
+          cp temp-artifacts/xgboost_final_model.pkl server/infrastructure/ml/models_store/xgboost_final_model.pkl
+          cp temp-artifacts/le_country.pkl server/infrastructure/ml/models_store/le_country.pkl
+          cp temp-artifacts/le_loc.pkl server/infrastructure/ml/models_store/le_loc.pkl
+          cp temp-artifacts/le_cat.pkl server/infrastructure/ml/models_store/le_cat.pkl
+
+          # Clean up temp directory
+          rm -rf temp-artifacts
+          
+          echo "Model files updated:"
+          ls -la server/models/
+          
+      - name: Commit and push model updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add server/models/
+          git status
+          if git diff --staged --quiet; then
+            echo "No model changes to commit"
+          else
+            git commit -m "Update ML model from training run #${{ github.run_number }}"
+            git push
+          fi
