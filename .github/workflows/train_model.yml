@@ -69,7 +69,7 @@ jobs:
           rm -rf temp-artifacts
           
           echo "Model files updated:"
-          ls -la server/models/
+          ls -la server/infrastructure/ml/models_store/
           
       - name: Commit and push model updates
         run: |
