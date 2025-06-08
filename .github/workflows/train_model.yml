@@ -1,7 +1,7 @@
 name: Train ML Model
 on:
   push:
-    branches: [ main, master ]  # Added master branch for compatibility
+    branches: [ main, master, feature/workflow-CI ]  # Added master branch for compatibility
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:  # Allows manual triggering
