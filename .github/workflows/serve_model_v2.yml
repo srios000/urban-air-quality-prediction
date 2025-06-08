@@ -1,0 +1,26 @@
+name: Deploy Server with New Model
+on:
+  workflow_call:  # Changed from workflow_run
+    inputs:
+      model_artifact_name:
+        required: true
+        type: string
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout server code
+      uses: actions/checkout@v3
+      with:
+        path: server
+    - name: Download model artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.model_artifact_name }}
+        path: server/models
+    - name: Trigger Railway Deploy
+      run: |
+        curl -X POST https://backboard.railway.app/project/${{ secrets.RAILWAY_PROJECT_ID }}/deploy \
+          -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}"

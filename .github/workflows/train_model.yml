@@ -41,3 +41,10 @@ jobs:
           ML_training/le_country.pkl
           ML_training/le_loc.pkl
         retention-days: 7  # Artifacts will be stored for 7 days
+  deploy:
+      needs: train  # or whatever your training job is called
+      if: success()  # only run if training succeeded
+      uses: ./.github/workflows/serve_model_v2.yml  # path to your deploy workflow
+      with:
+        model_artifact_name: model-artifacts
+      secrets: inherit  # passes all secrets to the called workflow
