@@ -75,7 +75,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add server/models/
+          git add server/infrastructure/ml/models_store/
           git status
           if git diff --staged --quiet; then
             echo "No model changes to commit"
