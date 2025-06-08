@@ -5,6 +5,7 @@ on:
     workflows: ["Train ML Model"]
     types:
       - completed
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
   deploy:

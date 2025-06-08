@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - 'client/**'
-    branches: [main, master, feature/merge_deployment]
+    branches: [ main, master, feature/merge_deployment ]
   workflow_dispatch:
 
 jobs:

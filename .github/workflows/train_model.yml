@@ -1,8 +1,8 @@
 name: Train ML Model
 on:
   push:
-    # paths:
-    #   - 'ML_training/**'
+    paths:
+      - 'ML_training/**'
     branches: [ main, master, feature/merge_deployment ]  # Added master branch for compatibility
   pull_request:
     branches: [ main, master ]
