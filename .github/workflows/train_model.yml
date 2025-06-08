@@ -36,8 +36,8 @@ jobs:
       with:
         name: model-artifacts
         path: |
-          xgboost_final_model.pkl
-          le_cat.pkl
-          le_country.pkl
-          le_loc.pkl
+          ML_training/xgboost_final_model.pkl
+          ML_training/le_cat.pkl
+          ML_training/le_country.pkl
+          ML_training/le_loc.pkl
         retention-days: 7  # Artifacts will be stored for 7 days
