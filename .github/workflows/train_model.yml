@@ -1,7 +1,9 @@
 name: Train ML Model
 on:
   push:
-    branches: [ main, master, feature/workflow-CI ]  # Added master branch for compatibility
+    paths:
+      - 'ML_training/**'
+    branches: [ main, master, feature/merge_deployment ]  # Added master branch for compatibility
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:  # Allows manual triggering
@@ -20,11 +22,13 @@ jobs:
     
     - name: Install dependencies
       run: |
+        cd ML_training
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements.txt ]; then pip install -r ML_training/requirements.txt; fi
     
-    - name: Run MLflow model training
+    - name: Run ML model training
       run: |
+        cd ML_training
         python main.py
     
     - name: Upload model artifacts
