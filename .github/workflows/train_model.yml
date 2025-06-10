@@ -50,7 +50,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
       - name: Download model artifacts
         uses: actions/download-artifact@v4
         with:
@@ -59,15 +61,11 @@ jobs:
           
       - name: Extract and place model files
         run: |
-          # Copy the extracted files to server/infrastructure/ml/models_store/
           cp temp-artifacts/xgboost_final_model.pkl server/infrastructure/ml/models_store/xgboost_final_model.pkl
           cp temp-artifacts/le_country.pkl server/infrastructure/ml/models_store/le_country.pkl
           cp temp-artifacts/le_loc.pkl server/infrastructure/ml/models_store/le_loc.pkl
           cp temp-artifacts/le_cat.pkl server/infrastructure/ml/models_store/le_cat.pkl
-
-          # Clean up temp directory
           rm -rf temp-artifacts
-          
           echo "Model files updated:"
           ls -la server/infrastructure/ml/models_store/
           
@@ -81,10 +79,5 @@ jobs:
             echo "No model changes to commit"
           else
             git commit -m "Update ML model from training run #${{ github.run_number }}"
-            # Push to the appropriate branch based on the event type
-            if [ "${{ github.event_name }}" = "pull_request" ]; then
-              git push origin HEAD:${{ github.head_ref }}
-            else
-              git push origin HEAD:${{ github.ref_name }}
-            fi
+            git push
           fi
