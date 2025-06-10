@@ -80,6 +80,11 @@ jobs:
           if git diff --staged --quiet; then
             echo "No model changes to commit"
           else
-            git commit -m "Update ML model from training run #12"
-            git push
+            git commit -m "Update ML model from training run #${{ github.run_number }}"
+            # Push to the appropriate branch based on the event type
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              git push origin HEAD:${{ github.head_ref }}
+            else
+              git push origin HEAD:${{ github.ref_name }}
+            fi
           fi
