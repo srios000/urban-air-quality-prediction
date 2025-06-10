@@ -1,151 +1,23 @@
-name: Deploy to PythonAnywhere
+name: Deploy to Railway
+
 on:
   workflow_run:
     workflows: ["Train ML Model"]
     types: [completed]
+
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-      
-      - name: Deploy to PythonAnywhere
-        env:
-          PA_API_TOKEN: ${{ secrets.PA_API_TOKEN }}
-          PA_USERNAME: ${{ secrets.PA_USERNAME }}
-          PA_DOMAIN: ${{ secrets.PA_DOMAIN }}
-        run: |
-          python -c "
-          import requests
-          import os
-          import zipfile
-          import json
-          
-          username = os.environ['PA_USERNAME']
-          token = os.environ['PA_API_TOKEN']
-          domain = os.environ['PA_DOMAIN']
-          headers = {'Authorization': f'Token {token}'}
-          
-          print(f'Deploying for user: {username}')
-          print(f'Target domain: {domain}')
-          
-          print('Checking existing web apps...')
-          response = requests.get(
-              f'https://www.pythonanywhere.com/api/v0/user/{username}/webapps/',
-              headers=headers
-          )
-          print(f'Web apps list response: {response.status_code}')
-          
-          if response.status_code == 200:
-              webapps = response.json()
-              print(f'Found web apps: {[app[\"domain_name\"] for app in webapps]}')
-              
-              target_app = None
-              for app in webapps:
-                  if app['domain_name'] == domain:
-                      target_app = app
-                      break
-              
-              if not target_app:
-                  print(f'Web app {domain} not found. Available apps: {[app[\"domain_name\"] for app in webapps]}')
-                  print('Please create the web app in PythonAnywhere dashboard first.')
-                  exit(1)
-              else:
-                  print(f'Found target web app: {domain}')
-          
-          def create_zip():
-              with zipfile.ZipFile('deployment.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
-                  for root, dirs, files in os.walk('.'):
-                      dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__']
-                      for file in files:
-                          if not file.startswith('.') and not file.endswith('.pyc'):
-                              file_path = os.path.join(root, file)
-                              arcname = os.path.relpath(file_path, '.')
-                              zipf.write(file_path, arcname)
-          
-          print('Creating deployment package...')
-          create_zip()
-          
-          print('Uploading files...')
-          with open('deployment.zip', 'rb') as f:
-              files = {'content': f}
-              response = requests.post(
-                  f'https://www.pythonanywhere.com/api/v0/user/{username}/files/path/home/{username}/deployment.zip',
-                  headers=headers,
-                  files=files
-              )
-              print(f'Upload response: {response.status_code}')
-              if response.status_code not in [200, 201]:
-                  print(f'Upload failed: {response.text}')
-                  exit(1)
-          
-          print('Extracting files...')
-          extract_script = '''
-          import zipfile
-          import os
-          import shutil
-          
-          with zipfile.ZipFile('/home/{username}/deployment.zip', 'r') as zip_ref:
-              zip_ref.extractall('/home/{username}/temp_deploy')
-          
-          web_app_path = '/home/{username}/{domain}'
-          if os.path.exists(web_app_path):
-              if os.path.exists(web_app_path + '_backup'):
-                  shutil.rmtree(web_app_path + '_backup')
-              shutil.move(web_app_path, web_app_path + '_backup')
-          
-          shutil.move('/home/{username}/temp_deploy', web_app_path)
-          
-          os.remove('/home/{username}/deployment.zip')
-          print('Files extracted successfully')
-          '''.format(username=username, domain=domain.replace('.pythonanywhere.com', ''))
-          
-          response = requests.post(
-              f'https://www.pythonanywhere.com/api/v0/user/{username}/consoles/',
-              headers=headers,
-              json={'executable': 'python3.9', 'arguments': ['-c', extract_script]}
-          )
-          print(f'Extraction script response: {response.status_code}')
-          
-          print('Reloading web app...')
-          response = requests.post(
-              f'https://www.pythonanywhere.com/api/v0/user/{username}/webapps/{domain}/reload/',
-              headers=headers
-          )
-          print(f'Reload response: {response.status_code}')
-          
-          if response.status_code == 200:
-              print('Deployment successful!')
-          else:
-              print(f'Reload failed with status {response.status_code}')
-              print(f'Response: {response.text}')
-              print('Files uploaded successfully, but reload failed. You may need to reload manually.')
-          "
-      
-      - name: Verify deployment
-        env:
-          PA_DOMAIN: ${{ secrets.PA_DOMAIN }}
-        run: |
-          sleep 30
-          
-          response_code=$(curl -s -o /dev/null -w "%{http_code}" https://$PA_DOMAIN)
-          if [ $response_code -eq 200 ]; then
-            echo "Deployment verification successful - app is responding"
-          else
-            echo "Deployment verification failed - app returned $response_code"
-            exit 1
-          fi
+
+      - name: Deploy
+        run: railway up --service=${{ secrets.RAILWAY_SERVICE_ID }} --detach
