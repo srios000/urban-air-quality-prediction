@@ -59,7 +59,7 @@ jobs:
           
       - name: Extract and place model files
         run: |
-          # Copy the extracted files to server/models
+          # Copy the extracted files to server/infrastructure/ml/models_store/
           cp temp-artifacts/xgboost_final_model.pkl server/infrastructure/ml/models_store/xgboost_final_model.pkl
           cp temp-artifacts/le_country.pkl server/infrastructure/ml/models_store/le_country.pkl
           cp temp-artifacts/le_loc.pkl server/infrastructure/ml/models_store/le_loc.pkl
@@ -77,9 +77,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add server/infrastructure/ml/models_store/
           git status
-          if git diff --staged --quiet; then
-            echo "No model changes to commit"
-          else
-            git commit -m "Update ML model from training run #${{ github.run_number }}"
-            git push
-          fi
+          git commit -m "Update ML model from training run #${{ github.run_number }}"
+          git push
