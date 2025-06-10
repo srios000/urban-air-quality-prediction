@@ -5,7 +5,6 @@ on:
       - 'server/**'
     branches: [main]
   workflow_dispatch:
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -19,7 +18,7 @@ jobs:
         
     - name: Deploy to Railway
       run: |
-        railway login --token ${{ secrets.RAILWAY_TOKEN }}
+        railway login
         railway up --project ${{ secrets.RAILWAY_PROJECT_ID }}
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
