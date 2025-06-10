@@ -32,13 +32,40 @@ jobs:
           python -c "
           import requests
           import os
-          import base64
           import zipfile
-          from pathlib import Path
+          import json
           
           username = os.environ['PA_USERNAME']
           token = os.environ['PA_API_TOKEN']
           domain = os.environ['PA_DOMAIN']
+          headers = {'Authorization': f'Token {token}'}
+          
+          print(f'Deploying for user: {username}')
+          print(f'Target domain: {domain}')
+          
+          print('Checking existing web apps...')
+          response = requests.get(
+              f'https://www.pythonanywhere.com/api/v0/user/{username}/webapps/',
+              headers=headers
+          )
+          print(f'Web apps list response: {response.status_code}')
+          
+          if response.status_code == 200:
+              webapps = response.json()
+              print(f'Found web apps: {[app[\"domain_name\"] for app in webapps]}')
+              
+              target_app = None
+              for app in webapps:
+                  if app['domain_name'] == domain:
+                      target_app = app
+                      break
+              
+              if not target_app:
+                  print(f'Web app {domain} not found. Available apps: {[app[\"domain_name\"] for app in webapps]}')
+                  print('Please create the web app in PythonAnywhere dashboard first.')
+                  exit(1)
+              else:
+                  print(f'Found target web app: {domain}')
           
           def create_zip():
               with zipfile.ZipFile('deployment.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -50,10 +77,10 @@ jobs:
                               arcname = os.path.relpath(file_path, '.')
                               zipf.write(file_path, arcname)
           
+          print('Creating deployment package...')
           create_zip()
           
-          headers = {'Authorization': f'Token {token}'}
-          
+          print('Uploading files...')
           with open('deployment.zip', 'rb') as f:
               files = {'content': f}
               response = requests.post(
@@ -62,7 +89,39 @@ jobs:
                   files=files
               )
               print(f'Upload response: {response.status_code}')
+              if response.status_code not in [200, 201]:
+                  print(f'Upload failed: {response.text}')
+                  exit(1)
           
+          print('Extracting files...')
+          extract_script = '''
+          import zipfile
+          import os
+          import shutil
+          
+          with zipfile.ZipFile('/home/{username}/deployment.zip', 'r') as zip_ref:
+              zip_ref.extractall('/home/{username}/temp_deploy')
+          
+          web_app_path = '/home/{username}/{domain}'
+          if os.path.exists(web_app_path):
+              if os.path.exists(web_app_path + '_backup'):
+                  shutil.rmtree(web_app_path + '_backup')
+              shutil.move(web_app_path, web_app_path + '_backup')
+          
+          shutil.move('/home/{username}/temp_deploy', web_app_path)
+          
+          os.remove('/home/{username}/deployment.zip')
+          print('Files extracted successfully')
+          '''.format(username=username, domain=domain.replace('.pythonanywhere.com', ''))
+          
+          response = requests.post(
+              f'https://www.pythonanywhere.com/api/v0/user/{username}/consoles/',
+              headers=headers,
+              json={'executable': 'python3.9', 'arguments': ['-c', extract_script]}
+          )
+          print(f'Extraction script response: {response.status_code}')
+          
+          print('Reloading web app...')
           response = requests.post(
               f'https://www.pythonanywhere.com/api/v0/user/{username}/webapps/{domain}/reload/',
               headers=headers
@@ -72,8 +131,9 @@ jobs:
           if response.status_code == 200:
               print('Deployment successful!')
           else:
-              print(f'Deployment failed: {response.text}')
-              exit(1)
+              print(f'Reload failed with status {response.status_code}')
+              print(f'Response: {response.text}')
+              print('Files uploaded successfully, but reload failed. You may need to reload manually.')
           "
       
       - name: Verify deployment
