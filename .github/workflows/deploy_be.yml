@@ -1,23 +1,16 @@
 name: Deploy to Railway
 on:
-  push:
-    paths:
-      - 'server/**'
-    branches: [main]
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Train ML Model"]
+    types: [completed]
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install Railway CLI
-      run: |
-        curl -fsSL https://railway.app/install.sh | sh
-        
-    - name: Deploy to Railway
-      run: |
-        railway up -- --project ${{ secrets.RAILWAY_PROJECT_ID }}
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - uses: actions/checkout@v4
+      - name: Deploy
+        run: railway up --detach
