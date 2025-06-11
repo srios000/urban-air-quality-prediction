@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/be/:path*",
-        destination: "http://127.0.0.1:8001/api/:path*",
+        destination: "https://127.0.0.1:8001/api/:path*",
       },
       {
         source: "/openapi.json",
