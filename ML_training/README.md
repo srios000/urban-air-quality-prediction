@@ -1,30 +1,31 @@
 # Sistem Prediksi Kualitas Udara Perkotaan
 
 ## Deskripsi
+
 Proyek ini mengembangkan sistem prediksi kualitas udara berbasis machine learning yang dapat memprediksi indeks kualitas udara (Air Quality Index/AQI) secara harian berdasarkan data historis polutan.
 
 ## Anggota Tim
+
 - A002YBF021 – Agung Kurniawan – Institut Teknologi Bandung
 - A135YAM326 – Muhammad Husain – Politeknik Negeri Ujung Pandang
 - A009YBF463 – Sintario Satya – Universitas Gunadarma
 - A135XAF486 – Tsamarah Muthi'ah Abdullah – Politeknik Negeri Ujung Pandang
 
 ## Struktur Proyek
+
 ```
-/data               # untuk raw data dan processed data 
+/data               # untuk raw data dan processed data
 /notebooks          # untuk eksplorasi data dan prototyping
 /src                # source code utama
-/data_processing    # script untuk data processing
-/models             # model definitions dan training scripts
-/api                # kode untuk API
-/visualization      # kode untuk visualisasi
-/tests              # unit tests
-/docs               # dokumentasi
-/config             # file konfigurasi
+/src/data_processing    # script untuk data processing
+/src/models             # model definitions dan training scripts
+/tests              # script untuk inference tests
 ```
 
 ## Setup
+
 1. Clone repository ini
+
 ```bash
 
 git clone https://github.com/srios000/urban-air-quality-prediction.git
@@ -32,19 +33,19 @@ cd urban-air-quality-prediction
 ```
 
 2. Buat virtual environment
+
 ```bash
-python -m venv env
-source env/bin/activate  # Untuk Linux/Mac
-env\Scripts\activate     # Untuk Windows
+conda create -n main python=3.12
 ```
 
 3. Install dependencies
+
 ```bash
-pip install -r requirements.txt
+pip install -r ML_training/requirements.txt
 ```
 
-4. Copy file .env.example menjadi .env dan sesuaikan konfigurasi
+4. Jalankan script main untuk memulai training model
+
 ```bash
-cp .env.example .env
-# Edit file .env dengan konfigurasi lokal masing - masing
+python ML_training/main.py
 ```

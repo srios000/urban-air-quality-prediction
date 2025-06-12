@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.metrics import classification_report
 from xgboost import XGBClassifier
 import pickle
+from pathlib import Path
 
 # local module
 from src.data_processing.feature_engineering import base_feature_engineering
@@ -12,8 +13,19 @@ from src.models.tuning import random_search
 
 
 def main():
+    base_dir = Path(__file__).resolve().parent
+
+    # Build path to the CSV
+    data_path = (
+        base_dir.parent
+        / "ML_training"
+        / "data"
+        / "processed"
+        / "air_quality_data_clean.csv"
+    )
+
     # load dataset
-    aqi_dataset = pd.read_csv("data/processed/air_quality_data_clean.csv")
+    aqi_dataset = pd.read_csv(data_path)
     print("data loaded successfully !\n")
 
     # ==== Step 2: Persiapan data ====
@@ -58,18 +70,25 @@ def main():
 
     cross_val("Best XGBoost", best_model, X_train, y_train)
 
+    # ==== Step 7: Save model to server dir ====
+    # Get the absolute path to the current script (inference.py)
+    base_dir = Path(__file__).resolve().parent
+
+    # Construct the absolute path to the # Model directory (2 levels up, then into server/infrastructure/...)
+    model_path = base_dir.parent / "server" / "infrastructure" / "ml" / "models_store"
+
     # Simpan encoder ke file
-    with open("le_country.pkl", "wb") as f:
+    with open(model_path / "le_country.pkl", "wb") as f:
         pickle.dump(aqi_le_country, f)
 
-    with open("le_loc.pkl", "wb") as f:
+    with open(model_path / "le_loc.pkl", "wb") as f:
         pickle.dump(aqi_le_loc, f)
 
-    with open("le_cat.pkl", "wb") as f:
+    with open(model_path / "le_cat.pkl", "wb") as f:
         pickle.dump(aqi_le_cat, f)
     # Simpan model XGBoost terbaik
-    with open("xgboost_final_model.pkl", "wb") as f:
-        pickle.dump(best_model, f)
+    with open(model_path / "xgboost_final_model.pkl", "wb") as f:
+        pickle.dump(model, f)
 
 
 if __name__ == "__main__":
