@@ -3,62 +3,60 @@ on:
   push:
     # paths:
     #   - 'ML_training/**'
-    branches: [ main]
+    branches: [main, feature/documentation]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 jobs:
   train:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    
-    - name: Install dependencies
-      run: |
-        cd ML_training
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
-    - name: Run ML model training
-      run: |
-        cd ML_training
-        python main.py
-    
-    - name: Upload model artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: model-artifacts
-        path: |
-          ML_training/xgboost_final_model.pkl
-          ML_training/le_cat.pkl
-          ML_training/le_country.pkl
-          ML_training/le_loc.pkl
-        retention-days: 7
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r ML_training/requirements.txt; fi
+
+      - name: Run ML model training
+        run: |
+          python ML_training/main.py
+
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: |
+            server/infrastructure/ml/models_store/xgboost_final_model.pkl
+            server/infrastructure/ml/models_store/le_cat.pkl
+            server/infrastructure/ml/models_store/le_country.pkl
+            server/infrastructure/ml/models_store/le_loc.pkl
+          retention-days: 7
 
   update-server-models:
-      needs: train
-      if: success()
-      runs-on: ubuntu-latest
-      steps:
+    needs: train
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
-          
+
       - name: Download model artifacts
         uses: actions/download-artifact@v4
         with:
           name: model-artifacts
           path: temp-artifacts
-          
+
       - name: Extract and place model files
         run: |
           cp temp-artifacts/xgboost_final_model.pkl server/infrastructure/ml/models_store/xgboost_final_model.pkl
@@ -68,7 +66,7 @@ jobs:
           rm -rf temp-artifacts
           echo "Model files updated:"
           ls -la server/infrastructure/ml/models_store/
-          
+
       - name: Commit and push model updates
         run: |
           git config --local user.email "action@github.com"  
@@ -83,3 +81,4 @@ jobs:
             Auto-generated commit from ML training workflow."
             git push
           fi
+
