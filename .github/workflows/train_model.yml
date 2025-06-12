@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r ML_training/requirements.txt; fi
+          if [ -f ML_training/requirements.txt ]; then pip install -r ML_training/requirements.txt; fi
 
       - name: Run ML model training
         run: |
@@ -81,4 +81,3 @@ jobs:
             Auto-generated commit from ML training workflow."
             git push
           fi
-
