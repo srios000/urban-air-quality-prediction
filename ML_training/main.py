@@ -13,8 +13,19 @@ from src.models.tuning import random_search
 
 
 def main():
+    base_dir = Path(__file__).resolve().parent
+
+    # Build path to the CSV
+    data_path = (
+        base_dir.parent
+        / "ML_training"
+        / "data"
+        / "processed"
+        / "air_quality_data_clean.csv"
+    )
+
     # load dataset
-    aqi_dataset = pd.read_csv("data/processed/air_quality_data_clean.csv")
+    aqi_dataset = pd.read_csv(data_path)
     print("data loaded successfully !\n")
 
     # ==== Step 2: Persiapan data ====
@@ -50,14 +61,14 @@ def main():
     cross_val("XGBoost", model, X_train, y_train)
 
     # ==== Step 6: Model fine tune ====
-    tuner = random_search(model, X_train, y_train)
-
-    # Hasil parameter terbaik
-    print("\n🔍 Best Parameters:", tuner.best_params_)
-    # Model terbaik dari hasil tuning
-    best_model = tuner.best_estimator_
-
-    cross_val("Best XGBoost", best_model, X_train, y_train)
+    # tuner = random_search(model, X_train, y_train)
+    #
+    # # Hasil parameter terbaik
+    # print("\n🔍 Best Parameters:", tuner.best_params_)
+    # # Model terbaik dari hasil tuning
+    # best_model = tuner.best_estimator_
+    #
+    # cross_val("Best XGBoost", best_model, X_train, y_train)
 
     # ==== Step 7: Save model to server dir ====
     # Get the absolute path to the current script (inference.py)
