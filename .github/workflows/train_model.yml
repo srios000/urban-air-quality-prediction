@@ -3,7 +3,7 @@ on:
   push:
     # paths:
     #   - 'ML_training/**'
-    branches: [main, feature/documentation]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
