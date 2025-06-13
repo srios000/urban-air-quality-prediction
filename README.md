@@ -7,7 +7,7 @@ Proyek ini mengembangkan sistem prediksi kualitas udara berbasis machine learnin
 ## Anggota Tim
 
 - A002YBF021 – Agung Kurniawan – Institut Teknologi Bandung
-- A135YAM326 – Muhammad Husain – Politeknik Negeri Ujung Pandang
+- A135YAM326 – Muhammad Husain – Politeknik Negeri Ujung Pandang (inactive)
 - A009YBF463 – Sintario Satya – Universitas Gunadarma
 - A135XAF486 – Tsamarah Muthi'ah Abdullah – Politeknik Negeri Ujung Pandang
 
